@@ -1389,7 +1389,6 @@ auto CosThetaStarB0(const T& candidate)
 }
 } // namespace hf_cand_b0
 
-
 // declare dedicated B0 decay candidate table
 DECLARE_SOA_TABLE(HfCandB0Base, "AOD", "HFCANDB0BASE",
                   // general columns
