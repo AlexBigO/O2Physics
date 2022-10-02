@@ -174,7 +174,7 @@ struct HfTaskB0MC {
   Filter filterSelectCandidates = (aod::hf_selcandidate_b0::isSelB0ToDPi >= selectionFlagB0);
 
   void processMC(soa::Filtered<soa::Join<aod::HfCandB0, aod::HFSelB0ToDPiCandidate, aod::HfCandB0MCRec>> const& candidates,
-               soa::Join<aod::McParticles, aod::HfCandB0MCGen> const& particlesMC, aod::BigTracksMC const& tracks, aod::HfCandProng3 const&)
+                 soa::Join<aod::McParticles, aod::HfCandB0MCGen> const& particlesMC, aod::BigTracksMC const& tracks, aod::HfCandProng3 const&)
   {
     //MC rec
     for (auto& candidate : candidates) {
@@ -266,7 +266,7 @@ struct HfTaskB0MC {
     } //gen
   }   // process
   PROCESS_SWITCH(HfTaskB0MC, processMC, "Process MC", false);
-};    // struct
+}; // struct
 
 WorkflowSpec defineDataProcessing(ConfigContext const& cfgc)
 {

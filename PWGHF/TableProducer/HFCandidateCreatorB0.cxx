@@ -128,9 +128,9 @@ struct HFCandidateCreatorB0 {
       array<float, 3> pVecpiK = {track0.px() + track1.px(), track0.py() + track1.py(), track0.pz() + track1.pz()};
       array<float, 3> pVecD = {pVecpiK[0] + track2.px(), pVecpiK[1] + track2.py(), pVecpiK[2] + track2.pz()};
       auto trackParVarPiK = o2::dataformats::V0(df3.getPCACandidatePos(), pVecpiK, df3.calcPCACovMatrixFlat(),
-                                          trackParVar0, trackParVar1, {0, 0}, {0, 0});
+                                                trackParVar0, trackParVar1, {0, 0}, {0, 0});
       auto trackParVarD = o2::dataformats::V0(df3.getPCACandidatePos(), pVecD, df3.calcPCACovMatrixFlat(),
-                                        trackParVarPiK, trackParVar2, {0, 0}, {0, 0});
+                                              trackParVarPiK, trackParVar2, {0, 0}, {0, 0});
 
       int index0D = track0.globalIndex();
       int index1D = track1.globalIndex();
@@ -308,9 +308,9 @@ struct HFCandidateCreatorB0MC {
   Produces<aod::HfCandB0MCGen> rowMCMatchGen; // table defined in HFSecondaryVertex.h
 
   void processMC(aod::HfCandB0 const& candidates,
-               aod::HfCandProng3 const&,
-               aod::BigTracksMC const& tracks,
-               aod::McParticles const& particlesMC)
+                 aod::HfCandProng3 const&,
+                 aod::BigTracksMC const& tracks,
+                 aod::McParticles const& particlesMC)
   {
     int indexRec = -1;
     int8_t sign = 0;
@@ -374,6 +374,6 @@ WorkflowSpec defineDataProcessing(ConfigContext const& cfgc)
   WorkflowSpec workflow{
     adaptAnalysisTask<HFCandidateCreatorB0>(cfgc),
     adaptAnalysisTask<HFCandidateCreatorB0Expressions>(cfgc)};
-    workflow.push_back(adaptAnalysisTask<HFCandidateCreatorB0MC>(cfgc));
+  workflow.push_back(adaptAnalysisTask<HFCandidateCreatorB0MC>(cfgc));
   return workflow;
 }
