@@ -246,21 +246,58 @@ DECLARE_SOA_TABLE(HFTrigTrain3P, "AOD", "HFTRIGTRAIN3P", //!
                   hftraining3p::Channel,
                   hftraining3p::HFSelBit);
 
-namespace hfoptimisationTree
+namespace hfoptimisationTree2Prong
 {
 DECLARE_SOA_COLUMN(CollisionIndex, collisionIndex, int);           //!
-DECLARE_SOA_COLUMN(BkgBDT, bkgBDT, float);           //!
-DECLARE_SOA_COLUMN(PromptBDT, promptBDT, float);           //!
-DECLARE_SOA_COLUMN(NonpromptBDT, nonpromptBDT, float);           //!
-DECLARE_SOA_COLUMN(DCAXY, dcaXY, float);           //!
-} // namespace hfoptimisationTree
-DECLARE_SOA_TABLE(HFOptimisationTree, "AOD", "HFOPTIMTREE", //!
-                  hfoptimisationTree::CollisionIndex,
-                  hfoptimisationTree::BkgBDT,
-                  hfoptimisationTree::PromptBDT,
-                  hfoptimisationTree::NonpromptBDT,
-                  hfoptimisationTree::DCAXY);
+DECLARE_SOA_COLUMN(BkgBDTD0, bkgBDTD0, float);           //!
+DECLARE_SOA_COLUMN(PromptBDTD0, promptBDTD0, float);           //!
+DECLARE_SOA_COLUMN(NonpromptBDTD0, nonpromptBDTD0, float);           //!
+DECLARE_SOA_COLUMN(DCAXYD0, dcaXYD0, float);           //!
+} // namespace hfoptimisationTree2Prong
+DECLARE_SOA_TABLE(HFOptimisationTree2Prong, "AOD", "HFOPTIMTREE2P", //!
+                  hfoptimisationTree2Prong::CollisionIndex,
+                  hfoptimisationTree2Prong::BkgBDTD0,
+                  hfoptimisationTree2Prong::PromptBDTD0,
+                  hfoptimisationTree2Prong::NonpromptBDTD0,
+                  hfoptimisationTree2Prong::DCAXYD0);
+
+namespace hfoptimisationTree3Prong
+{
+DECLARE_SOA_COLUMN(CollisionIndex, collisionIndex, int);           //!
+DECLARE_SOA_COLUMN(BkgBDTDplus, bkgBDTDplus, float);           //!
+DECLARE_SOA_COLUMN(PromptBDTDplus, promptBDTDplus, float);           //!
+DECLARE_SOA_COLUMN(NonpromptBDTDplus, nonpromptBDTDplus, float);           //!
+DECLARE_SOA_COLUMN(DCAXYDplus, dcaXYDplus, float);           //!
+} // namespace hfoptimisationTree3Prong
+DECLARE_SOA_TABLE(HFOptimisationTree3Prong, "AOD", "HFOPTIMTREE3P", //!
+                  hfoptimisationTree3Prong::CollisionIndex,
+                  hfoptimisationTree3Prong::BkgBDTDplus,
+                  hfoptimisationTree3Prong::PromptBDTDplus,
+                  hfoptimisationTree3Prong::NonpromptBDTDplus,
+                  hfoptimisationTree3Prong::DCAXYDplus);
 } // namespace o2::aod
+
+/*
+DECLARE_SOA_COLUMN(BkgBDTLc, bkgBDTLc, float);           //!
+DECLARE_SOA_COLUMN(PromptBDTLc, promptBDTLc, float);           //!
+DECLARE_SOA_COLUMN(NonpromptBDTLc, nonpromptBDTLc, float);           //!
+DECLARE_SOA_COLUMN(DCAXYLc, dcaXYLc, float);           //!
+DECLARE_SOA_COLUMN(BkgBDTXic, bkgBDTXic, float);           //!
+DECLARE_SOA_COLUMN(PromptBDTXic, promptBDTXic, float);           //!
+DECLARE_SOA_COLUMN(NonpromptBDTXic, nonpromptBDTXic, float);           //!
+DECLARE_SOA_COLUMN(DCAXYXic, dcaXYXic, float);           //!
+*/
+
+/*
+                 hfoptimisationTree::BkgBDTLc,
+                  hfoptimisationTree::PromptBDTLc,
+                  hfoptimisationTree::NonpromptBDTLc,
+                  hfoptimisationTree::DCAXYLc,
+                  hfoptimisationTree::BkgBDTXic,
+                  hfoptimisationTree::PromptBDTXic,
+                  hfoptimisationTree::NonpromptBDTXic,
+                  hfoptimisationTree::DCAXYXic
+*/
 
 struct AddCollisionId {
 
@@ -285,6 +322,8 @@ struct HfFilter { // Main struct for HF triggers
   Produces<aod::HfFilters> tags;
   Produces<aod::HFTrigTrain2P> train2P;
   Produces<aod::HFTrigTrain3P> train3P;
+  Produces<aod::HFOptimisationTree2Prong> optimisationTree2Prong;
+  Produces<aod::HFOptimisationTree3Prong> optimisationTree3Prong;
 
   Configurable<bool> activateQA{"activateQA", false, "flag to enable QA histos"};
 
@@ -890,8 +929,8 @@ struct HfFilter { // Main struct for HF triggers
               keepEvent[kBeauty3P] = true;
               // fill optimisation tree for D0
               if (applyOptimisation) {
-                optimisationTree(collision.globalIndex(), scores[0], scores[1], scores[2], track.dcaXY());
-              }              
+                optimisationTree2Prong(collision.globalIndex(), scores[0], scores[1], scores[2], track.dcaXY());
+              }
               if (activateQA) {
                 hMassVsPtB[kBplus]->Fill(ptCand, massCand);
               }
@@ -969,6 +1008,9 @@ struct HfFilter { // Main struct for HF triggers
       std::array<int8_t, kNCharmParticles - 1> isCharmTagged = is3Prong;
       std::array<int8_t, kNCharmParticles - 1> isBeautyTagged = is3Prong;
 
+      const int scoresSize = kNCharmParticles;
+      float myscores[scoresSize][3];
+      for (int i=0; i< scoresSize; i++) { std::fill_n(myscores[i], 3, -1);} // initialize BDT scores array outside ML loop
       // apply ML models
       if (applyML) {
         isCharmTagged = std::array<int8_t, kNCharmParticles - 1>{0};
@@ -1001,6 +1043,9 @@ struct HfFilter { // Main struct for HF triggers
             auto typeInfo = outputTensor[1].GetTensorTypeAndShapeInfo();
             assert(typeInfo.GetElementCount() == 3); // we need multiclass
             auto scores = outputTensor[1].GetTensorMutableData<float>();
+            myscores[iCharmPart +1][0] = scores[0];
+            myscores[iCharmPart +1][1] = scores[1];
+            myscores[iCharmPart +1][2] = scores[2];
 
             if (applyML && activateQA) {
               hBDTScoreBkg[iCharmPart + 1]->Fill(scores[0]);
@@ -1054,6 +1099,10 @@ struct HfFilter { // Main struct for HF triggers
         }
       } // end high-pT selection
 
+
+      float dcaXYCharm[scoresSize];
+      std::fill_n(dcaXYCharm, scoresSize, -99.);
+
       for (const auto& track : tracks) { // start loop over tracks
 
         if (track.globalIndex() == trackFirst.globalIndex() || track.globalIndex() == trackSecond.globalIndex() || track.globalIndex() == trackThird.globalIndex()) {
@@ -1071,6 +1120,9 @@ struct HfFilter { // Main struct for HF triggers
               auto massCandB = RecoDecay::m(std::array{pVec3Prong, pVecFourth}, std::array{massCharmHypos[iHypo], massPi});
               if (std::abs(massCandB - massBeautyHypos[iHypo]) <= deltaMassHypos[iHypo]) {
                 keepEvent[kBeauty4P] = true;
+                if (applyOptimisation) {
+                  dcaXYCharm[iHypo+1] = track.dcaXY();
+                }
                 if (activateQA) {
                   auto pVecBeauty4Prong = RecoDecay::pVec(pVec3Prong, pVecFourth);
                   auto ptCandBeauty4Prong = RecoDecay::pt(pVecBeauty4Prong);
@@ -1078,6 +1130,9 @@ struct HfFilter { // Main struct for HF triggers
                 }
               }
             }
+          }
+          if (applyOptimisation) {
+            optimisationTree3Prong(collision.globalIndex(), myscores[1][0], myscores[1][1], myscores[1][2], dcaXYCharm[1]);
           }
         } // end beauty selection
 
