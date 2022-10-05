@@ -252,11 +252,11 @@ DECLARE_SOA_TABLE(HFTrigTrain3P, "AOD", "HFTRIGTRAIN3P", //!
 
 namespace hfoptimisationTree2Prong
 {
-DECLARE_SOA_COLUMN(CollisionIndex, collisionIndex, int);           //!
-DECLARE_SOA_COLUMN(BkgBDTD0, bkgBDTD0, float);           //!
-DECLARE_SOA_COLUMN(PromptBDTD0, promptBDTD0, float);           //!
-DECLARE_SOA_COLUMN(NonpromptBDTD0, nonpromptBDTD0, float);           //!
-DECLARE_SOA_COLUMN(DCAXYD0, dcaXYD0, float);           //!
+DECLARE_SOA_COLUMN(CollisionIndex, collisionIndex, int);   //!
+DECLARE_SOA_COLUMN(BkgBDTD0, bkgBDTD0, float);             //!
+DECLARE_SOA_COLUMN(PromptBDTD0, promptBDTD0, float);       //!
+DECLARE_SOA_COLUMN(NonpromptBDTD0, nonpromptBDTD0, float); //!
+DECLARE_SOA_COLUMN(DCAXYD0, dcaXYD0, float);               //!
 } // namespace hfoptimisationTree2Prong
 DECLARE_SOA_TABLE(HFOptimisationTree2Prong, "AOD", "HFOPTIMTREE2P", //!
                   hfoptimisationTree2Prong::CollisionIndex,
@@ -267,11 +267,11 @@ DECLARE_SOA_TABLE(HFOptimisationTree2Prong, "AOD", "HFOPTIMTREE2P", //!
 
 namespace hfoptimisationTree3Prong
 {
-DECLARE_SOA_COLUMN(CollisionIndex, collisionIndex, int);           //!
-DECLARE_SOA_COLUMN(BkgBDTDplus, bkgBDTDplus, float);           //!
-DECLARE_SOA_COLUMN(PromptBDTDplus, promptBDTDplus, float);           //!
-DECLARE_SOA_COLUMN(NonpromptBDTDplus, nonpromptBDTDplus, float);           //!
-DECLARE_SOA_COLUMN(DCAXYDplus, dcaXYDplus, float);           //!
+DECLARE_SOA_COLUMN(CollisionIndex, collisionIndex, int);         //!
+DECLARE_SOA_COLUMN(BkgBDTDplus, bkgBDTDplus, float);             //!
+DECLARE_SOA_COLUMN(PromptBDTDplus, promptBDTDplus, float);       //!
+DECLARE_SOA_COLUMN(NonpromptBDTDplus, nonpromptBDTDplus, float); //!
+DECLARE_SOA_COLUMN(DCAXYDplus, dcaXYDplus, float);               //!
 } // namespace hfoptimisationTree3Prong
 DECLARE_SOA_TABLE(HFOptimisationTree3Prong, "AOD", "HFOPTIMTREE3P", //!
                   hfoptimisationTree3Prong::CollisionIndex,
@@ -1076,7 +1076,9 @@ struct HfFilter { // Main struct for HF triggers
 
       const int scoresSize = kNCharmParticles;
       float myscores[scoresSize][3];
-      for (int i=0; i< scoresSize; i++) { std::fill_n(myscores[i], 3, -1);} // initialize BDT scores array outside ML loop
+      for (int i = 0; i < scoresSize; i++) {
+        std::fill_n(myscores[i], 3, -1);
+      } // initialize BDT scores array outside ML loop
       // apply ML models
       if (applyML) {
         isCharmTagged = std::array<int8_t, kNCharmParticles - 1>{0};
@@ -1109,9 +1111,9 @@ struct HfFilter { // Main struct for HF triggers
             auto typeInfo = outputTensor[1].GetTensorTypeAndShapeInfo();
             assert(typeInfo.GetElementCount() == 3); // we need multiclass
             auto scores = outputTensor[1].GetTensorMutableData<float>();
-            myscores[iCharmPart +1][0] = scores[0];
-            myscores[iCharmPart +1][1] = scores[1];
-            myscores[iCharmPart +1][2] = scores[2];
+            myscores[iCharmPart + 1][0] = scores[0];
+            myscores[iCharmPart + 1][1] = scores[1];
+            myscores[iCharmPart + 1][2] = scores[2];
 
             if (applyML && activateQA) {
               hBDTScoreBkg[iCharmPart + 1]->Fill(scores[0]);
@@ -1165,7 +1167,6 @@ struct HfFilter { // Main struct for HF triggers
         }
       } // end high-pT selection
 
-
       float dcaXYCharm[scoresSize];
       std::fill_n(dcaXYCharm, scoresSize, -99.);
 
@@ -1187,7 +1188,7 @@ struct HfFilter { // Main struct for HF triggers
               if (std::abs(massCandB - massBeautyHypos[iHypo]) <= deltaMassHypos[iHypo]) {
                 keepEvent[kBeauty4P] = true;
                 if (applyOptimisation) {
-                  dcaXYCharm[iHypo+1] = track.dcaXY();
+                  dcaXYCharm[iHypo + 1] = track.dcaXY();
                 }
                 if (activateQA) {
                   auto pVecBeauty4Prong = RecoDecay::pVec(pVec3Prong, pVecFourth);
