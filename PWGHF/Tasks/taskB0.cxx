@@ -17,7 +17,7 @@
 #include "Framework/runDataProcessing.h"
 #include "Framework/AnalysisTask.h"
 #include "Framework/HistogramRegistry.h"
-#include "Common/DataModel/Centrality.h"
+//#include "Common/DataModel/Centrality.h"
 #include "PWGHF/DataModel/CandidateReconstructionTables.h"
 #include "PWGHF/DataModel/CandidateSelectionTables.h"
 #include "PWGHF/Core/SelectorCuts.h"
@@ -44,8 +44,7 @@ struct HfTaskB0 {
     "registry",
     {{"hPtProng0", "B0 candidates;prong 0 #it{p}_{T} (GeV/#it{c});entries", {HistType::kTH1F, {{1000, 0., 50.}}}},
      {"hPtProng1", "B0 candidates;prong 1 #it{p}_{T} (GeV/#it{c});entries", {HistType::kTH1F, {{200, 0., 10.}}}},
-     {"hPtCand", "B0 candidates;candidate #it{p}_{T} (GeV/#it{c});entries", {HistType::kTH1F, {{1000, 0., 50.}}}},
-     {"hCentrality", "centrality;centrality percentile;entries", {HistType::kTH1F, {{100, 0., 100.}}}}}};
+     {"hPtCand", "B0 candidates;candidate #it{p}_{T} (GeV/#it{c});entries", {HistType::kTH1F, {{1000, 0., 50.}}}}}};
 
   void init(o2::framework::InitContext&)
   {
@@ -64,12 +63,17 @@ struct HfTaskB0 {
     registry.add("hInvMassD", "B^{0} candidates;prong0, D^{#minus} inv. mass (GeV/#it{c}^{2});entries", {HistType::kTH2F, {{500, 0, 5}, {(std::vector<double>)binsPt, "#it{p}_{T} (GeV/#it{c})"}}});
   }
 
-  void process(soa::Join<aod::Collisions, aod::CentRun2V0Ms>::iterator const& collision, soa::Filtered<soa::Join<aod::HfCandB0, aod::HfSelB0ToDPi>> const& candidates, soa::Join<aod::HfCand3Prong, aod::HfSelDplusToPiKPi> const&, aod::BigTracks const&)
+  void process(aod::Collision const& collision,
+               soa::Filtered<soa::Join<
+                 aod::HfCandB0,
+                 aod::HfSelB0ToDPi>> const& candidates,
+               soa::Join<
+                 aod::HfCand3Prong,
+                 aod::HfSelDplusToPiKPi> const&,
+               aod::BigTracks const&)
   {
-    float centrality = collision.centRun2V0M();
-    registry.fill(HIST("hCentrality"), centrality);
 
-    for (auto const& candidate : candidates) {
+    for (const auto& candidate : candidates) {
       if (TESTBIT(candidate.hfflag(), hf_cand_b0::DecayType::B0ToDPi)) {
         continue;
       }
@@ -170,7 +174,7 @@ struct HfTaskB0Mc {
                  soa::Join<aod::McParticles, aod::HfCandB0McGen> const& particlesMC, aod::BigTracksMC const& tracks, aod::HfCand3Prong const&)
   {
     // MC rec
-    for (auto const& candidate : candidates) {
+    for (const auto& candidate : candidates) {
       if (TESTBIT(candidate.hfflag(), hf_cand_b0::DecayType::B0ToDPi)) {
         continue;
       }
@@ -225,7 +229,7 @@ struct HfTaskB0Mc {
 
     // MC gen. level
     // Printf("MC Particles: %d", particlesMC.size());
-    for (auto const& particle : particlesMC) {
+    for (const auto& particle : particlesMC) {
       if (TESTBIT(std::abs(particle.flagMcMatchGen()), hf_cand_b0::DecayType::B0ToDPi)) {
 
         auto yParticle = RecoDecay::y(array{particle.px(), particle.py(), particle.pz()}, RecoDecay::getMassPDG(pdg::Code::kB0));
@@ -235,7 +239,7 @@ struct HfTaskB0Mc {
 
         float ptProngs[2], yProngs[2], etaProngs[2];
         int counter = 0;
-        for (auto const& daught : particle.daughters_as<aod::McParticles>()) {
+        for (const auto& daught : particle.daughters_as<aod::McParticles>()) {
           ptProngs[counter] = daught.pt();
           etaProngs[counter] = daught.eta();
           yProngs[counter] = RecoDecay::y(array{daught.px(), daught.py(), daught.pz()}, RecoDecay::getMassPDG(daught.pdgCode()));
