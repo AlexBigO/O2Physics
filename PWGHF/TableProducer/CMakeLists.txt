@@ -144,6 +144,11 @@ o2physics_add_dpl_workflow(candidate-selector-dplus-to-pi-k-pi
                     PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2::DetectorsVertexing
                     COMPONENT_NAME Analysis)
 
+o2physics_add_dpl_workflow(candidate-selector-d-pi
+                    SOURCES candidateSelectorDPi.cxx
+                    PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2::DetectorsVertexing
+                    COMPONENT_NAME Analysis)
+
 o2physics_add_dpl_workflow(candidate-selector-ds-to-k-k-pi
                     SOURCES candidateSelectorDsToKKPi.cxx
                     PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2::DetectorsVertexing
