@@ -23,6 +23,7 @@
 #include "ReconstructionDataFormats/V0.h"
 #include "PWGHF/DataModel/CandidateReconstructionTables.h"
 #include "PWGHF/DataModel/CandidateSelectionTables.h"
+#include "PWGHF/DataModel/DerivedTablesForSkimming.h"
 
 using namespace o2;
 using namespace o2::aod;
@@ -53,6 +54,8 @@ struct HfCandidateCreatorB0 {
   double massD = RecoDecay::getMassPDG(pdg::Code::kDMinus);
   double massDPi = 0.;
 
+  int iterator=0;
+
   Filter filterSelectCandidates = (aod::hf_sel_candidate_dplus::isSelDplusToPiKPi >= selectionFlagD);
 
   OutputObj<TH1F> hMassDToPiKPi{TH1F("hMassB0ToPiKPi", "D^{#minus} candidates;inv. mass (p^{#minus} K^{#plus} #pi^{#minus}) (GeV/#it{c}^{2});entries", 500, 0., 5.)};
@@ -64,9 +67,22 @@ struct HfCandidateCreatorB0 {
   OutputObj<TH1F> hCovSVXX{TH1F("hCovSVXX", "2-prong candidates;XX element of cov. matrix of sec. vtx. position (cm^{2});entries", 100, 0., 0.2)};
 
   // process function using preselected D Pi candidates stored in AO2D tables
-  void process(aod::Collision const& collision) //, aod::HfSelD const& candDs, aod::HfSelPi const& candPis)
+  void process(aod::HfTrack0 const& track0s,
+                aod::HfTrack1 const& track1s,
+                aod::HfTrack2 const& track2s,
+                aod::HfTrack3 const& trackPions) //, aod::HfSelD const& candDs, aod::HfSelPi const& candPis)
   {
     LOG(info) << "Process function of B0 candidate creator";
+    //for (const auto& [track0, track1, track2, trackPion] : combinations(o2::soa::CombinationsFullIndexPolicy(track0s, track1s, track2s, trackPions))) {
+    for (const auto& track0 : track0s) {
+      auto ptProng0 = sqrt(track0.px()*track0.px() + track0.py()*track0.py());
+      hPtPion->Fill(ptProng0);
+      std::array<float, 22> trackParCovAttributes0 = hf_track_par_cov::getTrackParCovAttributes(track0);
+      o2::track::TrackParametrizationWithError<float> trackParCov0 = hf_track_par_cov::getTrackParCov(trackParCovAttributes0);
+      //iterator++;
+      //LOG(info) << iterator;
+      //LOG(info) << track0.prong0() << track1.prong1() << track2.prong2() << trackPion.prong3();
+    }
     //o2::track::TrackParametrizationWithError<TrackPrecision> getTrackParCov(const T& track)
   }
 
@@ -99,10 +115,10 @@ struct HfCandidateCreatorB0 {
 
     // loop over D candidates
     for (const auto& candD : candDs) {
-      if (!TESTBIT(candD.hfflag(), hf_cand_3prong::DecayType::DplusToPiKPi)) {
+      if (!TESTBIT(candD.hfflag(), hf_cand_3prong::DecayType::DplusToPiKPi)) { // FIXME: useless, this condition gives a flag=0 in DPlusToPiKPi selector
         continue;
       }
-      if (candD.isSelDplusToPiKPi() >= selectionFlagD) {  // FIXEME: useless as candidates are already filtered
+      if (candD.isSelDplusToPiKPi() >= selectionFlagD) {  // FIXME: useless as candidates are already filtered
         hMassDToPiKPi->Fill(invMassDplusToPiKPi(candD), candD.pt());
       }
       hPtD->Fill(candD.pt());
@@ -299,7 +315,7 @@ WorkflowSpec defineDataProcessing(ConfigContext const& cfgc)
 {
   WorkflowSpec workflow{
     adaptAnalysisTask<HfCandidateCreatorB0>(cfgc),
-    adaptAnalysisTask<HfCandidateCreatorB0Expressions>(cfgc)};
-  workflow.push_back(adaptAnalysisTask<HfCandidateCreatorB0Mc>(cfgc));
+    adaptAnalysisTask<HfCandidateCreatorB0Expressions>(cfgc),
+    adaptAnalysisTask<HfCandidateCreatorB0Mc>(cfgc)};
   return workflow;
 }

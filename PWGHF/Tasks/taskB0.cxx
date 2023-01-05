@@ -63,6 +63,10 @@ struct HfTaskB0 {
     registry.add("hInvMassD", "B^{0} candidates;prong0, D^{#minus} inv. mass (GeV/#it{c}^{2});entries", {HistType::kTH2F, {{500, 0, 5}, {(std::vector<double>)binsPt, "#it{p}_{T} (GeV/#it{c})"}}});
   }
 
+  void process() {
+    LOG(info) << "Hello";
+  }
+
   void process(aod::Collision const& collision,
                soa::Filtered<soa::Join<
                  aod::HfCandB0,
