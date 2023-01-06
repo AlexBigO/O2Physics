@@ -10,7 +10,8 @@
 // or submit itself to any jurisdiction.
 
 /// \file DerivedTablesForSkimming.h
-/// \brief Header file with definition of variables, methods, and tables used in the candidateSelectorDPi.cxx and candidateCreatorB0.cxx tasks
+/// \brief Header file with definition of variables, methods, and tables
+//  used to fold (unfold) track and primary vertex information by writing (reading) AO2Ds
 /// \note
 ///
 /// \author Alexandre Bigot <alexandre.bigot@cern.ch>, IPHC Strasbourg
@@ -21,27 +22,6 @@
 namespace o2::aod
 {
 
-/// Build TrackParametrizationWithError instance from track attributes
-/// \param x is the X of track evaluation
-/// \param alpha is the track frame angle
-/// \param arraypar is an array of 5 parameters: Y,Z,sin(phi),tg(lambda),q/pT
-/// \param covpar is an array of covariance matrix elements
-/// \return TrackParametrizationWithError object
-/*
-template <typename TrackPrecision = float, typename T1 = float, typename T2 = std::array<TrackPrecision, 5>, typename T3 = std::array<TrackPrecision, 15>>
-o2::track::TrackParametrizationWithError<TrackPrecision> getTrackParCov(const T1& x, const T1& alpha, const T2& arraypar, const T3& covpar)
-{
-    return o2::track::TrackParametrizationWithError<TrackPrecision>(x, alpha, std::move(arraypar), std::move(covpar));
-}
-*/
-
-
-
-
-
-
-
-// TODO : see if this is needed (there is already hf_pv_refit_...) --> then move the Id in hf_track_par_cov
 namespace hf_pv_refit
 {
 
@@ -57,9 +37,9 @@ enum HfPVRefit : int {
     kCovZZ
 };
 
-// Helper functions for collision handling
-
-/// Extracts primary vertex position and covariance matrix from a collision.
+/// Extracts primary vertex position and covariance matrix from a collision
+/// \param collision
+/// \return array with primary vertex information
 template <typename T>
 std::array<float, 9> getPrimaryVertexAttributes(const T& collision)
 {
@@ -67,15 +47,20 @@ std::array<float, 9> getPrimaryVertexAttributes(const T& collision)
             collision.covXX(), collision.covXY(), collision.covYY(), collision.covXZ(), collision.covYZ(), collision.covZZ()};
 }
 
-///
+/*
+/// Constructs primary vertex from its attributes
+/// \param arraycollision is a std::array<float, 9> containing primary vertex attributes
+/// \return VertexBase instance
 template <typename T>
 o2::dataformats::VertexBase getPrimaryVertex(const T& arraycollision)
 {
   o2::math_utils::Point3D<float> vtxXYZ(arraycollision[kPosX], arraycollision[kPosY], arraycollision[kPosZ]);
   std::array<float, 6> vtxCov{arraycollision[kCovXX], arraycollision[kCovXY], arraycollision[kCovYY], arraycollision[kCovXZ], arraycollision[kCovYZ], arraycollision[kCovZZ]};
   return o2::dataformats::VertexBase{std::move(vtxXYZ), std::move(vtxCov)};
-}
+}*/
 
+
+// CAREFUL: the getters names shall be the same as the ones of the getPrimaryVertex method in Common/Core/trackUtilities.h
 DECLARE_SOA_COLUMN(Id, globalIndex, int64_t); //!
 DECLARE_SOA_COLUMN(PosX, posX, float); //!
 DECLARE_SOA_COLUMN(PosY, posY, float); //!
@@ -129,11 +114,8 @@ enum HfTrackParCov : int {
     kSigQ2Pt2
 };
 
-
-// Helper functions for track handling
-
 /// Extracts track parameters and covariance matrix from a track
-/// \param track is a track
+/// \param track
 /// \return array with track information
 template <typename TrackPrecision = float, typename T>
 std::array<TrackPrecision, 22> getTrackParCovAttributes(const T& track)
@@ -149,8 +131,12 @@ std::array<TrackPrecision, 22> getTrackParCovAttributes(const T& track)
             track.c1PtTgl(), track.c1Pt21Pt2()};
 }
 
+/*
+/// Constructs TrackParametrizationWithError instance from track attributes
+/// \param trackParCovAttributes is a std::array<float, 22> containing track parameters and covariance matrix
+/// \return TrackParametrizationWithError instance
 template <typename TrackPrecision = float, typename T>
-o2::track::TrackParametrizationWithError<TrackPrecision> getTrackParCov(const T& trackParCovAttributes)
+o2::track::TrackParametrizationWithError<TrackPrecision> mygetTrackParCov(const T& trackParCovAttributes)
 {
     float x = trackParCovAttributes[kX];
     float alpha = trackParCovAttributes[kAlpha];
@@ -166,7 +152,10 @@ o2::track::TrackParametrizationWithError<TrackPrecision> getTrackParCov(const T&
     }
 
     return o2::track::TrackParametrizationWithError<TrackPrecision>(x, alpha, std::move(arraypar), std::move(covpar));
-}
+}*/
+
+// CAREFUL: the getters names shall be the same as the ones of the getTrackParCov method in Common/Core/trackUtilities.h
+DECLARE_SOA_COLUMN(CollisionId, collisionId, int64_t); //!
 
 DECLARE_SOA_COLUMN(X, x, float); //!
 DECLARE_SOA_COLUMN(Alpha, alpha, float); //!
@@ -198,7 +187,7 @@ DECLARE_SOA_COLUMN(Pz, pz, float); //!
 DECLARE_SOA_COLUMN(IsProng0, prong0, float); //!
 DECLARE_SOA_COLUMN(IsProng1, prong1, float); //!
 DECLARE_SOA_COLUMN(IsProng2, prong2, float); //!
-DECLARE_SOA_COLUMN(IsProng3, prong3, float); //! // for the pion
+DECLARE_SOA_COLUMN(IsProng3, prong3, float); //!
 } // namespace hf_track_par_cov
 
 // general columns
@@ -231,6 +220,7 @@ DECLARE_SOA_COLUMN(IsProng3, prong3, float); //! // for the pion
 
 DECLARE_SOA_TABLE(HfTrack0, "AOD", "HFTRACK0", //!
                 HFTRACKPARCOV_COLUMNS,
+                hf_track_par_cov::CollisionId,
                 hf_track_par_cov::IsProng0);
 
 DECLARE_SOA_TABLE(HfTrack1, "AOD", "HFTRACK1", //!

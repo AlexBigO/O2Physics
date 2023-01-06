@@ -77,8 +77,9 @@ struct HfCandidateCreatorB0 {
     for (const auto& track0 : track0s) {
       auto ptProng0 = sqrt(track0.px()*track0.px() + track0.py()*track0.py());
       hPtPion->Fill(ptProng0);
-      std::array<float, 22> trackParCovAttributes0 = hf_track_par_cov::getTrackParCovAttributes(track0);
-      o2::track::TrackParametrizationWithError<float> trackParCov0 = hf_track_par_cov::getTrackParCov(trackParCovAttributes0);
+      //std::array<float, 22> trackParCovAttributes0 = hf_track_par_cov::getTrackParCovAttributes(track0);
+      o2::track::TrackParametrizationWithError<float> trackParCov0 = getTrackParCov(track0);
+      LOG(info) << "trackParCov0" << trackParCov0.getX() ;
       //iterator++;
       //LOG(info) << iterator;
       //LOG(info) << track0.prong0() << track1.prong1() << track2.prong2() << trackPion.prong3();

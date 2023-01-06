@@ -37,7 +37,7 @@ using namespace o2::framework::expressions;
 
 struct HfCandidateSelectorDPi {
     // Produces AOD tables to store track information
-    Produces<aod::HfPVRefit> hfPVRefit;
+    Produces<aod::HfPvRefit3Prong> hfPVRefit3Prong;
     Produces<aod::HfTrack0> hfTrack0;
     Produces<aod::HfTrack1> hfTrack1;
     Produces<aod::HfTrack2> hfTrack2;
@@ -100,8 +100,7 @@ struct HfCandidateSelectorDPi {
 
                 // fill AOD table with collision information (taken from track0)
                 auto collision = track0.collision();
-                hfPVRefit(collision.globalIndex(),
-                            collision.posX(), collision.posY(), collision.posZ(),
+                hfPVRefit3Prong(collision.posX(), collision.posY(), collision.posZ(),
                             collision.covXX(), collision.covXY(), collision.covYY(), collision.covXZ(), collision.covYZ(), collision.covZZ());
 
                 // fill the AOD tables with Pi,K,Pi and Pion track information
@@ -116,6 +115,7 @@ struct HfCandidateSelectorDPi {
                             trackParCov0[kSigQ2PtY], trackParCov0[kSigQ2PtZ], trackParCov0[kSigQ2PtSnp],
                             trackParCov0[kSigQ2PtTgl], trackParCov0[kSigQ2Pt2],
                             track0.px(), track0.py(), track0.pz(),
+                            track0.collision().globalIndex(),
                             0);
 
                 auto trackParCov1 = getTrackParCovAttributes(track1);
@@ -156,22 +156,6 @@ struct HfCandidateSelectorDPi {
                             trackParCovPion[kSigQ2PtTgl], trackParCovPion[kSigQ2Pt2],
                             trackPion.px(), trackPion.py(), trackPion.pz(),
                             3);
-
-                // test "track constructor"
-                /*std::array<float, 5> arraypar = {trackPion.y(), trackPion.z(), trackPion.snp(),
-                                            trackPion.tgl(), trackPion.signed1Pt()};
-                std::array<float, 15> covpar = {trackPion.cYY(), trackPion.cZY(), trackPion.cZZ(),
-                                           trackPion.cSnpY(), trackPion.cSnpZ(),
-                                           trackPion.cSnpSnp(), trackPion.cTglY(), trackPion.cTglZ(),
-                                           trackPion.cTglSnp(), trackPion.cTglTgl(),
-                                           trackPion.c1PtY(), trackPion.c1PtZ(), trackPion.c1PtSnp(),
-                                           trackPion.c1PtTgl(), trackPion.c1Pt21Pt2()};*/
-
-                o2::track::TrackParametrizationWithError<float> myTrackParCov = hf_track_par_cov::getTrackParCov(trackParCovPion);
-                //o2::track::TrackParametrizationWithError<float> myTrackParCov = o2::track::TrackParametrizationWithError<float>(trackPion.x(), trackPion.alpha(), std::move(arraypar), std::move(covpar));
-                auto x = myTrackParCov.getX();
-                
-                
             } // pion loop
         } // D loop
     } // process
