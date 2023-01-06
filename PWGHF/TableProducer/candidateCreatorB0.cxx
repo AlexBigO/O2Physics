@@ -67,17 +67,21 @@ struct HfCandidateCreatorB0 {
   OutputObj<TH1F> hCovSVXX{TH1F("hCovSVXX", "2-prong candidates;XX element of cov. matrix of sec. vtx. position (cm^{2});entries", 100, 0., 0.2)};
 
   // process function using preselected D Pi candidates stored in AO2D tables
-  void process(aod::HfTrack0 const& track0s,
+  void process(aod::HfPvRefit const& pvRefits,
+                aod::HfTrack0 const& track0s,
                 aod::HfTrack1 const& track1s,
                 aod::HfTrack2 const& track2s,
                 aod::HfTrack3 const& trackPions) //, aod::HfSelD const& candDs, aod::HfSelPi const& candPis)
   {
     LOG(info) << "Process function of B0 candidate creator";
-    //for (const auto& [track0, track1, track2, trackPion] : combinations(o2::soa::CombinationsFullIndexPolicy(track0s, track1s, track2s, trackPions))) {
+    for (const auto& pvRefit : pvRefits) {
+      o2::dataformats::VertexBase primaryVertex = hf_pv_refit::getPrimaryVertex(pvRefit);
+    }
+    //for (const auto& [pvRefit, track0, track1, track2, trackPion] : combinations(o2::soa::CombinationsFullIndexPolicy(pvRefits, track0s, track1s, track2s, trackPions))) {
     for (const auto& track0 : track0s) {
       auto ptProng0 = sqrt(track0.px()*track0.px() + track0.py()*track0.py());
       hPtPion->Fill(ptProng0);
-      //std::array<float, 22> trackParCovAttributes0 = hf_track_par_cov::getTrackParCovAttributes(track0);
+
       o2::track::TrackParametrizationWithError<float> trackParCov0 = getTrackParCov(track0);
       LOG(info) << "trackParCov0" << trackParCov0.getX() ;
       //iterator++;

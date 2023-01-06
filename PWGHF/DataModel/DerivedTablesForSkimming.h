@@ -47,18 +47,16 @@ std::array<float, 9> getPrimaryVertexAttributes(const T& collision)
             collision.covXX(), collision.covXY(), collision.covYY(), collision.covXZ(), collision.covYZ(), collision.covZZ()};
 }
 
-/*
 /// Constructs primary vertex from its attributes
 /// \param arraycollision is a std::array<float, 9> containing primary vertex attributes
 /// \return VertexBase instance
 template <typename T>
-o2::dataformats::VertexBase getPrimaryVertex(const T& arraycollision)
+o2::dataformats::VertexBase getPrimaryVertex(const T& pvRefit)
 {
-  o2::math_utils::Point3D<float> vtxXYZ(arraycollision[kPosX], arraycollision[kPosY], arraycollision[kPosZ]);
-  std::array<float, 6> vtxCov{arraycollision[kCovXX], arraycollision[kCovXY], arraycollision[kCovYY], arraycollision[kCovXZ], arraycollision[kCovYZ], arraycollision[kCovZZ]};
+  o2::math_utils::Point3D<float> vtxXYZ(pvRefit.posX(), pvRefit.posY(), pvRefit.posZ());
+  std::array<float, 6> vtxCov{pvRefit.covXX(), pvRefit.covXY(), pvRefit.covYY(), pvRefit.covXZ(), pvRefit.covYZ(), pvRefit.covZZ()};
   return o2::dataformats::VertexBase{std::move(vtxXYZ), std::move(vtxCov)};
-}*/
-
+}
 
 // CAREFUL: the getters names shall be the same as the ones of the getPrimaryVertex method in Common/Core/trackUtilities.h
 DECLARE_SOA_COLUMN(Id, globalIndex, int64_t); //!
@@ -73,7 +71,7 @@ DECLARE_SOA_COLUMN(CovYZ, covYZ, float); //!
 DECLARE_SOA_COLUMN(CovZZ, covZZ, float); //!
 } // namespace hf_pv_refit
 
-DECLARE_SOA_TABLE(HfPVRefit, "AOD", "HFPVREFIT", //!
+DECLARE_SOA_TABLE(HfPvRefit, "AOD", "HFPVREFIT", //!
                 hf_pv_refit::Id,
                 hf_pv_refit::PosX,
                 hf_pv_refit::PosY,
@@ -155,8 +153,6 @@ o2::track::TrackParametrizationWithError<TrackPrecision> mygetTrackParCov(const 
 }*/
 
 // CAREFUL: the getters names shall be the same as the ones of the getTrackParCov method in Common/Core/trackUtilities.h
-DECLARE_SOA_COLUMN(CollisionId, collisionId, int64_t); //!
-
 DECLARE_SOA_COLUMN(X, x, float); //!
 DECLARE_SOA_COLUMN(Alpha, alpha, float); //!
 DECLARE_SOA_COLUMN(Y, y, float); //!
@@ -220,7 +216,6 @@ DECLARE_SOA_COLUMN(IsProng3, prong3, float); //!
 
 DECLARE_SOA_TABLE(HfTrack0, "AOD", "HFTRACK0", //!
                 HFTRACKPARCOV_COLUMNS,
-                hf_track_par_cov::CollisionId,
                 hf_track_par_cov::IsProng0);
 
 DECLARE_SOA_TABLE(HfTrack1, "AOD", "HFTRACK1", //!

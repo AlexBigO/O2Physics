@@ -37,7 +37,7 @@ using namespace o2::framework::expressions;
 
 struct HfCandidateSelectorDPi {
     // Produces AOD tables to store track information
-    Produces<aod::HfPvRefit3Prong> hfPVRefit3Prong;
+    Produces<aod::HfPvRefit> hfPvRefit;
     Produces<aod::HfTrack0> hfTrack0;
     Produces<aod::HfTrack1> hfTrack1;
     Produces<aod::HfTrack2> hfTrack2;
@@ -100,7 +100,8 @@ struct HfCandidateSelectorDPi {
 
                 // fill AOD table with collision information (taken from track0)
                 auto collision = track0.collision();
-                hfPVRefit3Prong(collision.posX(), collision.posY(), collision.posZ(),
+                hfPvRefit(collision.globalIndex(),
+                            collision.posX(), collision.posY(), collision.posZ(),
                             collision.covXX(), collision.covXY(), collision.covYY(), collision.covXZ(), collision.covYZ(), collision.covZZ());
 
                 // fill the AOD tables with Pi,K,Pi and Pion track information
@@ -115,7 +116,7 @@ struct HfCandidateSelectorDPi {
                             trackParCov0[kSigQ2PtY], trackParCov0[kSigQ2PtZ], trackParCov0[kSigQ2PtSnp],
                             trackParCov0[kSigQ2PtTgl], trackParCov0[kSigQ2Pt2],
                             track0.px(), track0.py(), track0.pz(),
-                            track0.collision().globalIndex(),
+
                             0);
 
                 auto trackParCov1 = getTrackParCovAttributes(track1);
