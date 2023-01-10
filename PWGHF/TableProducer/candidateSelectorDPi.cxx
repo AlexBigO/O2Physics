@@ -43,9 +43,11 @@ struct HfCandidateSelectorDPi {
     Produces<aod::HfTrack2> hfTrack2;
     Produces<aod::HfTrack3> hfTrackPion;
 
+    Configurable<bool> usePionIsGlobalTrackWoDCA{"usePionIsGlobalTrackWoDCA", true, "check isGlobalTrackWoDCA status for pions, for Run3 studies"};
     Configurable<double> ptPionMin{"ptPionMin", 0.5, "minimum pion pT threshold (GeV/c)"};
+    Configurable<std::vector<double>> binsPtPion{"binsPtPion", std::vector<double>{hf_cuts_single_track::vecBinsPtTrack}, "track pT bin limits for pion DCA XY pT-dependent cut"};
+    Configurable<LabeledArray<double>> cutsTrackPionDCA{"cutsTrackPionDCA", {hf_cuts_single_track::cutsTrack[0], hf_cuts_single_track::nBinsPtTrack, hf_cuts_single_track::nCutVarsTrack, hf_cuts_single_track::labelsPtTrack, hf_cuts_single_track::labelsCutVarTrack}, "Single-track selections per pT bin for pions"};
     Configurable<int> selectionFlagD{"selectionFlagD", 1, "Selection Flag for D"}; // 1 or 3 or 7?
-    Filter filterDCandidates = (aod::hf_sel_candidate_dplus::isSelDplusToPiKPi >= selectionFlagD);
 
     /// Pion selection (D Pi <-- B0)
     /// \param trackPion is a track with the pion hypothesis
@@ -55,16 +57,14 @@ struct HfCandidateSelectorDPi {
     /// \param indexD is an array of globalIndex of each D prong
     /// \return true if trackPion passes all cuts
     template <typename T1, typename T2, typename T3>
-    bool isPionSelected(const T1& trackPion,
-        const T2& track0, const T2& track1, const T2& track2,
-        const T3& indexD)
+    bool isPionSelected(const T1& trackPion, const T2& candD, const T3& track0)
     {
         // minimum pT selection
         if (trackPion.pt() < ptPionMin) {
             return false;
         }
         // reject pions that are D daughters
-        if (trackPion.globalIndex() == indexD[0] || trackPion.globalIndex() == indexD[1] || trackPion.globalIndex() == indexD[2]) {
+        if (trackPion.globalIndex() == candD.prong0Id() || trackPion.globalIndex() == candD.prong1Id() || trackPion.globalIndex() == candD.prong2Id()) {
             return false;
         }
         // reject pi D with same sign as D
@@ -74,19 +74,49 @@ struct HfCandidateSelectorDPi {
         return true;
     }
 
-    void process(aod::Collision const&,
+    /// Single-track cuts for pions on dcaXY
+    /// \param track is a track
+    /// \return true if track passes all cuts
+    template <typename T>
+    bool isSelectedTrackDCA(const T& track)
+    {
+        auto pTBinTrack = findBin(binsPtPion, track.pt());
+        if (pTBinTrack == -1) {
+            return false;
+        }
+
+        if (std::abs(track.dcaXY()) < cutsTrackPionDCA->get(pTBinTrack, "min_dcaxytoprimary")) {
+            return false; // minimum DCAxy
+        }
+        if (std::abs(track.dcaXY()) > cutsTrackPionDCA->get(pTBinTrack, "max_dcaxytoprimary")) {
+            return false; // maximum DCAxy
+        }
+        return true;
+    }
+
+    using TracksWithSel = soa::Join<aod::BigTracksExtended, aod::TrackSelection>;
+
+    Filter filterSelectTracks = (!usePionIsGlobalTrackWoDCA) || ((usePionIsGlobalTrackWoDCA) && requireGlobalTrackWoDCAInFilter());
+    Filter filterSelectCandidates = (aod::hf_sel_candidate_dplus::isSelDplusToPiKPi >= selectionFlagD);
+
+    void process(aod::Collisions const&,
                     soa::Filtered<soa::Join<
                     aod::HfCand3Prong,
                     aod::HfSelDplusToPiKPi>> const& candDs,
-                aod::BigTracks const& tracks)
+                    TracksWithSel const&,
+                    soa::Filtered<TracksWithSel> const& tracks)
     {
         // loop over D candidates
         for (const auto& candD : candDs) {
             // track0 <-> pi, track1 <-> K, track2 <-> pi
-            auto track0 = candD.prong0_as<aod::BigTracks>();
-            auto track1 = candD.prong1_as<aod::BigTracks>();
-            auto track2 = candD.prong2_as<aod::BigTracks>();
-            array<int64_t,3> indexD = {track0.globalIndex(), track1.globalIndex(), track2.globalIndex()};
+            auto track0 = candD.prong0_as<TracksWithSel>();
+            auto track1 = candD.prong1_as<TracksWithSel>();
+            auto track2 = candD.prong2_as<TracksWithSel>();
+            // TODO : we don't need it if we use candD.prong0Id() in the selection function, that would only take trackPion and candD as arguments then
+            //array<int64_t,3> indexD = {track0.globalIndex(), track1.globalIndex(), track2.globalIndex()};
+
+            auto collisionId = candD.collisionId();
+            auto collision = track0.collision();
 
             // compute D momentum vector
             //array<float, 3> pVecpiK = {track0.px() + track1.px(), track0.py() + track1.py(), track0.pz() + track1.pz()};
@@ -94,7 +124,7 @@ struct HfCandidateSelectorDPi {
 
             for (const auto& trackPion : tracks) {
                 // Pion selection
-                if (!isPionSelected(trackPion, track0, track1, track2, indexD)) {
+                if (!isPionSelected(trackPion, candD, track0) || !isSelectedTrackDCA(trackPion)) {
                     continue;
                 }
 
@@ -115,9 +145,7 @@ struct HfCandidateSelectorDPi {
                             trackParCov0[kSigTglSnp], trackParCov0[kSigTgl2],
                             trackParCov0[kSigQ2PtY], trackParCov0[kSigQ2PtZ], trackParCov0[kSigQ2PtSnp],
                             trackParCov0[kSigQ2PtTgl], trackParCov0[kSigQ2Pt2],
-                            track0.px(), track0.py(), track0.pz(),
-
-                            0);
+                            track0.px(), track0.py(), track0.pz());
 
                 auto trackParCov1 = getTrackParCovAttributes(track1);
                 hfTrack1(trackParCov1[kX], trackParCov1[kAlpha],
@@ -129,8 +157,7 @@ struct HfCandidateSelectorDPi {
                             trackParCov1[kSigTglSnp], trackParCov1[kSigTgl2],
                             trackParCov1[kSigQ2PtY], trackParCov1[kSigQ2PtZ], trackParCov1[kSigQ2PtSnp],
                             trackParCov1[kSigQ2PtTgl], trackParCov1[kSigQ2Pt2],
-                            track1.px(), track1.py(), track1.pz(),
-                            1);
+                            track1.px(), track1.py(), track1.pz());
                 
                 auto trackParCov2 = getTrackParCovAttributes(track2);
                 hfTrack2(trackParCov2[kX], trackParCov2[kAlpha],
@@ -142,8 +169,7 @@ struct HfCandidateSelectorDPi {
                             trackParCov2[kSigTglSnp], trackParCov2[kSigTgl2],
                             trackParCov2[kSigQ2PtY], trackParCov2[kSigQ2PtZ], trackParCov2[kSigQ2PtSnp],
                             trackParCov2[kSigQ2PtTgl], trackParCov2[kSigQ2Pt2],
-                            track2.px(), track2.py(), track2.pz(),
-                            2);
+                            track2.px(), track2.py(), track2.pz());
                 
                 auto trackParCovPion = getTrackParCovAttributes(trackPion);
                 hfTrackPion(trackParCovPion[kX], trackParCovPion[kAlpha],
@@ -155,8 +181,7 @@ struct HfCandidateSelectorDPi {
                             trackParCovPion[kSigTglSnp], trackParCovPion[kSigTgl2],
                             trackParCovPion[kSigQ2PtY], trackParCovPion[kSigQ2PtZ], trackParCovPion[kSigQ2PtSnp],
                             trackParCovPion[kSigQ2PtTgl], trackParCovPion[kSigQ2Pt2],
-                            trackPion.px(), trackPion.py(), trackPion.pz(),
-                            3);
+                            trackPion.px(), trackPion.py(), trackPion.pz());
             } // pion loop
         } // D loop
     } // process
