@@ -184,14 +184,14 @@ namespace hf_b0_mc
 // MC Rec
 DECLARE_SOA_COLUMN(PtMother, ptMother, float); //! Transverse momentum of the mother in GeV/c
 // MC Gen
-DECLARE_SOA_COLUMN(Pt, pt, float); //! Transverse momentum of the track in GeV/c
-DECLARE_SOA_COLUMN(Y, y, float); //! Rapidity of the track
-DECLARE_SOA_COLUMN(Eta, eta, float); //! Pseudorapidity of the track
-DECLARE_SOA_COLUMN(PtProng0, ptProng0, float); //! Transverse momentum of the track's prong0 in GeV/c
-DECLARE_SOA_COLUMN(YProng0, yProng0, float); //! Rapidity of the track's prong0
+DECLARE_SOA_COLUMN(Pt, pt, float);               //! Transverse momentum of the track in GeV/c
+DECLARE_SOA_COLUMN(Y, y, float);                 //! Rapidity of the track
+DECLARE_SOA_COLUMN(Eta, eta, float);             //! Pseudorapidity of the track
+DECLARE_SOA_COLUMN(PtProng0, ptProng0, float);   //! Transverse momentum of the track's prong0 in GeV/c
+DECLARE_SOA_COLUMN(YProng0, yProng0, float);     //! Rapidity of the track's prong0
 DECLARE_SOA_COLUMN(EtaProng0, etaProng0, float); //! Pseudorapidity of the track's prong0
-DECLARE_SOA_COLUMN(PtProng1, ptProng1, float); //! Transverse momentum of the track's prong1 in GeV/c
-DECLARE_SOA_COLUMN(YProng1, yProng1, float); //! Rapidity of the track's prong1
+DECLARE_SOA_COLUMN(PtProng1, ptProng1, float);   //! Transverse momentum of the track's prong1 in GeV/c
+DECLARE_SOA_COLUMN(YProng1, yProng1, float);     //! Rapidity of the track's prong1
 DECLARE_SOA_COLUMN(EtaProng1, etaProng1, float); //! Pseudorapidity of the track's prong1
 } // namespace hf_b0_mc
 
