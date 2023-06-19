@@ -60,7 +60,7 @@ struct HfCandidateSelectorDplusToPiKPi {
   Configurable<LabeledArray<double>> cutsML{"ml_cuts", {hf_cuts_ml::cuts[0], hf_cuts_ml::npTBins, hf_cuts_ml::nCutScores, hf_cuts_ml::pTBinLabels, hf_cuts_ml::cutScoreLabels}, "ML selections per pT bin"};
 
   o2::analysis::HFMLResponse<float> hfMLResponse;
-  std::vector<float> outputML= {};
+  std::vector<float> outputML = {};
 
   TrackSelectorPID selectorPion;
   TrackSelectorPID selectorKaon;
@@ -212,8 +212,6 @@ struct HfCandidateSelectorDplusToPiKPi {
       auto trackPos1 = candidate.prong0_as<aod::BigTracksPID>(); // positive daughter (negative for the antiparticles)
       auto trackNeg = candidate.prong1_as<aod::BigTracksPID>();  // negative daughter (positive for the antiparticles)
       auto trackPos2 = candidate.prong2_as<aod::BigTracksPID>(); // positive daughter (negative for the antiparticles)
-
-
 
       /*
       // daughter track validity selection
