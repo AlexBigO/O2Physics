@@ -33,18 +33,18 @@ namespace o2::analysis
 {
 
 enum PIDStatus: uint8_t {
-  NoTPCAndNoTOF = 0,
-  TPCAndTOF,
+  TPCAndTOF = 0,
   TPCOnly,
   TOFOnly
 };
 
 template <typename T1>
+/// Tag track PID status (TPC and TOF, only TPC, only TOF)
+/// \param track is the track
+/// \return tag of PID status of the track
 uint8_t tagPID(const T1& track) {
   uint8_t tag{0};
-  if (!track.hasTPC() && !track.hasTOF()) {
-    SETBIT(tag, PIDStatus::NoTPCAndNoTOF);
-  } else if (track.hasTPC() && track.hasTOF()) {
+  if (track.hasTPC() && track.hasTOF()) {
     SETBIT(tag, PIDStatus::TPCAndTOF);
   } else if (track.hasTPC() && !track.hasTOF()) {
     SETBIT(tag, PIDStatus::TPCOnly);
@@ -54,6 +54,11 @@ uint8_t tagPID(const T1& track) {
   return tag;
 }
 
+/// Combine TPC and TOF nSigma
+/// \param nSigTPC is the number of sigmas for TPC
+/// \param nSigTOF is the number of sigmas for TOF
+/// \param tagPID is the tag on PID status of the track
+/// \return combined nSigma value
 template <typename T1, typename T2>
 T1 getCombinedNSigma(const T1& nSigTPC, const T1& nSigTOF, const T2& tagPID) {
   if (TESTBIT(tagPID, PIDStatus::TPCAndTOF)) {
@@ -98,6 +103,9 @@ class HFMLResponse
     }
 
     /// Initialize class instance (import configurables and OnnxModels)
+    /// \param binsLimits is a vector containing bins limits
+    /// \param cuts is a LabeledArray containing selections per bin
+    /// \param cutDir is a vector telling whether to reject score values greater or smaller than the threshold
     /// \param paths is a vector of onnx model paths
     /// \param enableOptimizations is a switch no enable optimizations
     /// \param threads
@@ -107,7 +115,7 @@ class HFMLResponse
       mBinsLimits = binsLimits;
       mCuts = cuts;
       mCutDir = cutDir;
- 
+
       mNetworks = std::vector<o2::ml::OnnxModel>(mNModels);
       mPaths = std::vector<std::string>(mNModels);
       mNModels = binsLimits.size() - 1;
@@ -142,7 +150,7 @@ class HFMLResponse
         return output;
     }
 
-    /// ML selections 
+    /// ML selections
     /// \param input is the input features
     /// \param nModel is the model index
     /// \return boolean telling if model predictions pass the cuts
@@ -165,7 +173,7 @@ class HFMLResponse
       return true;
     }
 
-    /// ML selections 
+    /// ML selections
     /// \param input is the input features
     /// \param nModel is the model index
     /// \param output is a container to be filled with model output
@@ -187,17 +195,6 @@ class HFMLResponse
         ++iClass;
       }
       return true;
-    }
-
-    // FIXME : getter for debugging
-    /// Get pointer to model of index 0
-    o2::ml::OnnxModel* getModel(const int& nModel) {
-      return &mNetworks[nModel];
-    }
-
-    template <typename T1>
-    void setCutDir(const T1& cutDir) {
-      mCutDir = cutDir;
     }
 
   private:
