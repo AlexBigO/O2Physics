@@ -17,15 +17,6 @@
 #ifndef PWGHF_CORE_HFMLRESPONSE_H_
 #define PWGHF_CORE_HFMLRESPONSE_H_
 
-#include <onnxruntime/core/session/experimental_onnxruntime_cxx_api.h>
-
-#include <map>
-#include <string>
-#include <vector>
-
-#include "CCDB/CcdbApi.h"
-#include "Framework/Array2D.h"
-
 #include "Tools/ML/MlResponse.h"
 
 namespace o2::analysis
@@ -38,7 +29,7 @@ class HfMlResponse : public o2::analysis::MlResponse<T>
   /// Default constructor
   HfMlResponse() = default;
   /// Default destructor
-  virtual ~HfMlResponse() = default;
+  virtual ~HfMlResponse() = default;  
 };
 
 } // namespace o2::analysis
