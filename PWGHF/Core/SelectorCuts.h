@@ -132,6 +132,12 @@ constexpr double cuts[nBinsPt][nCutScores] = {
   {0.5, 0.5, 0.5},
   {0.5, 0.5, 0.5},
   {0.5, 0.5, 0.5},
+  {0.5, 0.5, 0.5},
+  {0.5, 0.5, 0.5},
+  {0.5, 0.5, 0.5},
+  {0.5, 0.5, 0.5},
+  {0.5, 0.5, 0.5},
+  {0.5, 0.5, 0.5},
   {0.5, 0.5, 0.5}};
 
 // row labels
@@ -142,6 +148,12 @@ static const std::vector<std::string> labelsPt = {
   "pT bin 3",
   "pT bin 4",
   "pT bin 5",
+  "pT bin 6",
+  "pT bin 7",
+  "pT bin 8",
+  "pT bin 9",
+  "pT bin 10",
+  "pT bin 11"
 };
 
 // column labels
