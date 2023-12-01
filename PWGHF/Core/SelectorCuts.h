@@ -153,8 +153,7 @@ static const std::vector<std::string> labelsPt = {
   "pT bin 8",
   "pT bin 9",
   "pT bin 10",
-  "pT bin 11"
-};
+  "pT bin 11"};
 
 // column labels
 static const std::vector<std::string> labelsCutScore = {"score class 1", "score class 2", "score class 3"};
